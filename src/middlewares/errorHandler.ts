@@ -1,15 +1,22 @@
 import { Request, Response, NextFunction } from 'express';
+import { AppError } from '../errors/AppError';
 
-export const errorHandler = (
+export function errorHandler(
   err: Error,
   req: Request,
   res: Response,
-  next: NextFunction
-): void => {
-  console.error(`🚨 [Erro na API]: ${err.message}`);
+  _next: NextFunction,
+): void {
+  if (err instanceof AppError) {
+    res.status(err.statusCode).json({ success: false, error: err.message });
+    return;
+  }
+
+  console.error('[ERROR]', err);
 
   res.status(500).json({
-    status: 'error',
-    message: err.message || 'Erro interno do servidor.'
+    success: false,
+    error: 'Erro interno do servidor',
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
   });
-};
+} 
