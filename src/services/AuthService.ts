@@ -19,21 +19,30 @@ export class AuthService {
     };
   }
 
-  async signUp(profile: ProfileModel, password: string) {
-    if (!profile.email || !password) {
-      throw new AppError("E-mail e senha são obrigatórios");
-    }
-
-    if (password.length < 6) {
-      throw new AppError("A senha deve ter no mínimo 6 caracteres");
-    }
-
-    const data = await this.authRepo.signUp(profile, password);
-
-    return {
-      user: data.user,
-    };
+  async signUp(
+  profile: ProfileModel,
+  password: string,
+  confirmPassword: string, // 👈 novo parâmetro
+) {
+  if (!profile.email || !password) {
+    throw new AppError("E-mail e senha são obrigatórios");
   }
+
+  if (password.length < 6) {
+    throw new AppError("A senha deve ter no mínimo 6 caracteres");
+  }
+
+  if (password !== confirmPassword) {
+    throw new AppError("As senhas não coincidem");
+  }
+
+  const data = await this.authRepo.signUp(profile, password);
+
+  return {
+    user: data.user,
+    message: "Cadastro realizado! Verifique seu e-mail para confirmar a conta.",
+  };
+}
 
   async signOut() {
     await this.authRepo.signOut();
@@ -44,13 +53,13 @@ export class AuthService {
     await this.authRepo.resetPasswordRequest(email);
   }
 
-  async resetPassword(newPassword: string, accessToken: string) {
+  async resetPassword(newPassword: string, accessToken: string, refreshToken: string) {
     if (!newPassword || !accessToken) {
       throw new AppError("Nova senha e token são obrigatórios");
     }
     if (newPassword.length < 6) {
       throw new AppError("A senha deve ter no mínimo 6 caracteres");
     }
-    await this.authRepo.resetPassword(newPassword, accessToken);
+    await this.authRepo.resetPassword(newPassword, accessToken, refreshToken);
   }
 }

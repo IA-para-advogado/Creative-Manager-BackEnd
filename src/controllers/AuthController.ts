@@ -13,11 +13,12 @@ export class AuthController {
   }
 
   async signUp(req: Request, res: Response): Promise<void> {
-    const { name, email, phone, avatar_url, role, password } = req.body;
+    const { name, email, phone, avatar_url, role, password, confirmPassword } = req.body;
 
     const data = await this.service.signUp(
       { name, email, phone, avatar_url, role },
       password,
+      confirmPassword
     );
 
     res.status(201).json({ success: true, data });
@@ -34,8 +35,11 @@ export class AuthController {
   }
 
   async resetPassword(req: Request, res: Response): Promise<void> {
-    const { password, access_token } = req.body;
-    await this.service.resetPassword(password, access_token);
+    const { password, access_token, refresh_token} = req.body; // Adicionado refresh_token
+    
+    // Passando os 3 dados para o Service
+    await this.service.resetPassword(password, access_token, refresh_token);
+    
     res.json({ success: true, message: "Senha redefinida com sucesso" });
   }
 }
