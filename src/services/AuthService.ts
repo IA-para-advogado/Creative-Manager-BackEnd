@@ -1,34 +1,38 @@
 import { AuthRepository } from "../repositories/AuthRepository";
 import { ProfileModel } from "../repositories/ProfileRepository";
-import { AppError } from "../errors/AppError";
-import { AuthApiError, AuthError } from "@supabase/supabase-js";
+import { ServiceResponse } from "../errors/ServiceResponse";
 
 export class AuthService {
     private authRepo: AuthRepository = new AuthRepository();
 
-    async signIn(email: string, password: string) {
+    async signIn(email: string, password: string): Promise<ServiceResponse> {
         if (!email || !password) {
-            throw new AppError("E-mail e senha são obrigatórios");
+            return { success: false, status: 400, message: "E-mail e senha são obrigatórios" };
         }
 
         try {
             const data = await this.authRepo.signInWithEmail(email, password);
 
             return {
-                user: data.user,
-                access_token: data.session?.access_token,
-                expires_at: data.session?.expires_at,
+                success: true,
+                status: 200,
+                data: {
+                    user: data.user,
+                    access_token: data.session?.access_token,
+                    expires_at: data.session?.expires_at,
+                },
             };
         } catch (error) {
+            console.error('[AuthService] signIn error', error);
             const errorMessage = String(error);
 
             if (errorMessage.includes("Invalid login credentials"))
-                throw new AppError("E-mail ou senha inválidos", 401);
+                return { success: false, status: 401, message: "E-mail ou senha inválidos" };
 
             if (errorMessage.includes("Email not confirmed"))
-                throw new AppError("Seu e-mail ainda não foi confirmado", 401);
+                return { success: false, status: 401, message: "Seu e-mail ainda não foi confirmado" };
 
-            throw new AppError("Erro interno no servidor", 500);
+            return { success: false, status: 500, message: "Erro ao autenticar usuário" };
         }
     }
 
@@ -36,52 +40,79 @@ export class AuthService {
         profile: ProfileModel,
         password: string,
         confirmPassword: string, // 👈 novo parâmetro
-    ) {
+    ): Promise<ServiceResponse> {
         if (!profile.email || !password) {
-            throw new AppError("E-mail e senha são obrigatórios");
+            return { success: false, status: 400, message: "E-mail e senha são obrigatórios" };
         }
 
         if (password.length < 6) {
-            throw new AppError("A senha deve ter no mínimo 6 caracteres");
+            return { success: false, status: 400, message: "A senha deve ter no mínimo 6 caracteres" };
         }
 
         if (password !== confirmPassword) {
-            throw new AppError("As senhas não coincidem");
+            return { success: false, status: 400, message: "As senhas não coincidem" };
         }
 
-        const data = await this.authRepo.signUp(profile, password);
+        try {
+            const data = await this.authRepo.signUp(profile, password);
 
-        return {
-            user: data.user,
-            message:
-                "Cadastro realizado! Verifique seu e-mail para confirmar a conta.",
-        };
+            return {
+                success: true,
+                status: 201,
+                data: {
+                    user: data.user,
+                },
+                message: "Cadastro realizado! Verifique seu e-mail para confirmar a conta.",
+            };
+        } catch (error) {
+            console.error('[AuthService] signUp error', error);
+            return { success: false, status: 500, message: "Erro ao cadastrar usuário" };
+        }
     }
 
-    async signOut() {
-        await this.authRepo.signOut();
+    async signOut(): Promise<ServiceResponse> {
+        try {
+            await this.authRepo.signOut();
+            return { success: true, status: 200, message: "Sessão encerrada" };
+        } catch (error) {
+            return { success: false, status: 500, message: "Erro ao encerrar sessão" };
+        }
     }
 
-    async resetPasswordRequest(email: string) {
-        if (!email) throw new AppError("E-mail é obrigatório");
-        await this.authRepo.resetPasswordRequest(email);
+    async resetPasswordRequest(email: string): Promise<ServiceResponse> {
+        if (!email) return { success: false, status: 400, message: "E-mail é obrigatório" };
+
+        try {
+            await this.authRepo.resetPasswordRequest(email);
+            return { success: true, status: 200, message: "E-mail de recuperação enviado" };
+        } catch (error) {
+            console.error('[AuthService] resetPasswordRequest error', error);
+            return { success: false, status: 500, message: "Erro ao solicitar recuperação de senha" };
+        }
     }
 
     async resetPassword(
         newPassword: string,
         accessToken: string,
         refreshToken: string,
-    ) {
+    ): Promise<ServiceResponse> {
         if (!newPassword || !accessToken) {
-            throw new AppError("Nova senha e token são obrigatórios");
+            return { success: false, status: 400, message: "Nova senha e token são obrigatórios" };
         }
         if (newPassword.length < 6) {
-            throw new AppError("A senha deve ter no mínimo 6 caracteres");
+            return { success: false, status: 400, message: "A senha deve ter no mínimo 6 caracteres" };
         }
-        await this.authRepo.resetPassword(
-            newPassword,
-            accessToken,
-            refreshToken,
-        );
+
+        try {
+            await this.authRepo.resetPassword(
+                newPassword,
+                accessToken,
+                refreshToken,
+            );
+            return { success: true, status: 200, message: "Senha redefinida com sucesso" };
+        } catch (error) {
+            console.error('[AuthService] resetPassword error', error);
+            return { success: false, status: 500, message: "Erro ao redefinir senha" };
+        }
     }
 }

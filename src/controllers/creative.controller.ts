@@ -11,8 +11,8 @@ export class CreativeController {
   // Método que será chamado pela rota do dashboard
   getDashboardStats = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const stats = await this.creativeService.getDashboardData();
-      res.status(200).json(stats);
+      const result = await this.creativeService.getDashboardData();
+      res.status(result.status || 200).json(result);
     } catch (error) {
       next(error); // Encaminha o erro para o middleware de erro global
     }
