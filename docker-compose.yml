@@ -1,16 +1,43 @@
 services:
-  # Development container (runs dev server inside container)
-  frontend-dev:
+  # Development container — ts-node-dev com hot-reload
+  backend-dev:
     build:
       context: .
-      dockerfile: Dockerfile.frontend
+      dockerfile: Dockerfile
       target: development
-      args:
-        - GITHUB_TOKEN=${GITHUB_TOKEN}
-    container_name: creative-manager-frontend-dev
+    container_name: creative-manager-backend-dev
     ports:
-      - "5174:5173"
+      - "3000:3000"
     environment:
       - NODE_ENV=development
-      - VITE_API_BACKEND=${VITE_API_BACKEND:-http://localhost:3000/api}
+      - PORT=3000
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_KEY=${SUPABASE_KEY}
+      - FRONTEND_URL=${FRONTEND_URL}
+    env_file:
+      - .env
+    volumes:
+      # Monta o código-fonte local para hot-reload funcionar
+      - ./src:/app/src:ro
     restart: unless-stopped
+
+  # Production container — Node.js com JS compilado
+  backend-prod:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: creative-manager-backend-prod
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_KEY=${SUPABASE_KEY}
+      - FRONTEND_URL=${FRONTEND_URL}
+    env_file:
+      - .env
+    restart: unless-stopped
+    profiles:
+      - prod
