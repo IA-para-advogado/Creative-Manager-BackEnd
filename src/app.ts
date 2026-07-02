@@ -11,8 +11,20 @@ import { notFound } from './middlewares/notFound';
 const app: Application = express();
 
 app.use(helmet());
+const allowedOrigins = [
+    env.frontendUrl,          // ex: http://localhost:5173 (local)
+    'http://localhost:5174',  // frontend via Docker
+];
+
 app.use(cors({
-    origin: env.frontendUrl,
+    origin: (origin, callback) => {
+        // Permite requisições sem origin (ex: Insomnia, curl) e as origins permitidas
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error(`CORS: origem não permitida → ${origin}`));
+        }
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization'],
