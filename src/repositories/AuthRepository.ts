@@ -37,6 +37,7 @@ export class AuthRepository {
           role: profile.role,
           phone: profile.phone,
         },
+        emailRedirectTo: `${env.frontendUrl}/auth/confirmed`
       },
     });
     if (error) {
