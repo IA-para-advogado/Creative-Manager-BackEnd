@@ -24,24 +24,6 @@ COPY src/ ./src/
 # Compile TypeScript → dist/
 RUN npm run build
 
-# --- PRODUCTION RUNTIME ---
-FROM node:20-alpine AS production
-
-WORKDIR /app
-
-ENV NODE_ENV=production
-
-# Copy manifest files and install ONLY production dependencies
-COPY package.json package-lock.json ./
-RUN npm ci --omit=dev
-
-# Copy compiled output from builder
-COPY --from=builder /app/dist ./dist
-
-EXPOSE 3000
-
-CMD ["node", "dist/server.js"]
-
 # --- DEVELOPMENT RUNTIME ---
 FROM deps AS development
 
