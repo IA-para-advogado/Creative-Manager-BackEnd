@@ -15,5 +15,4 @@ export interface IDashboardStats {
   totalRevenue: number;
   roi: number;
   topCreative: ICreative | null;
-  aiInsights?: string;
 }

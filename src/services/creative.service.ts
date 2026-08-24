@@ -30,9 +30,6 @@ export class CreativeService {
       // Cálculo do ROI (Retorno sobre o Investimento)
       const roi = totalSpend > 0 ? ((totalRevenue - totalSpend) / totalSpend) * 100 : 0;
 
-      // 🤖 Placeholder para a futura implementação de IA
-      const aiInsights = "Análise da IA: Seu criativo principal está performando acima da média. Sugerimos aumentar o orçamento em 15%.";
-
       return {
         success: true,
         status: 200,
@@ -41,7 +38,6 @@ export class CreativeService {
           totalRevenue,
           roi: Number(roi.toFixed(2)),
           topCreative,
-          aiInsights,
         },
       };
     } catch (error) {

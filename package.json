@@ -15,8 +15,7 @@
     "express": "^4.19.2",
     "express-async-errors": "^3.1.1",
     "helmet": "^8.2.0",
-    "morgan": "^1.10.1",
-    "openai": "^4.28.0"
+    "morgan": "^1.10.1"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
