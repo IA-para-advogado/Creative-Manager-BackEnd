@@ -4,15 +4,15 @@ import { ProfileModel } from "./ProfileRepository";
 
 export class AuthRepository {
   // futuramente, para autenticação com Google
-//   async signInWithGoogle() {
-//     const { data, error } = await this.supabase.auth.signInWithOAuth({
-//       provider: 'google',
-//     });
-//     if (error) {
-//       throw new Error(`Erro ao autenticar com Google: ${error.message}`);
-//     }
-//     return data;
-//   }
+  //   async signInWithGoogle() {
+  //     const { data, error } = await this.supabase.auth.signInWithOAuth({
+  //       provider: 'google',
+  //     });
+  //     if (error) {
+  //       throw new Error(`Erro ao autenticar com Google: ${error.message}`);
+  //     }
+  //     return data;
+  //   }
 
   async signInWithEmail(email: string, password: string) {
 
@@ -53,7 +53,7 @@ export class AuthRepository {
   }
   async resetPasswordRequest(email: string) {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: env.frontendUrl + '/auth/reset-password',
+      redirectTo: env.frontendUrl + '/auth/resetpassword',
     });
     if (error) {
       throw new Error(`Erro ao solicitar recuperação: ${error.message}`);
@@ -63,7 +63,7 @@ export class AuthRepository {
   async resetPassword(newPassword: string, accessToken: string, refreshToken: string) {
 
     const { error: sessionError } = await supabase.auth.setSession({
-      access_token:  accessToken,
+      access_token: accessToken,
       refresh_token: refreshToken,
     });
     if (sessionError) {
