@@ -56,6 +56,11 @@ export class AuthService {
         try {
             const data = await this.authRepo.signUp(profile, password);
 
+            // Verifica se o usuário já existe (quando o Supabase tem a proteção contra enumeração de e-mail ativada)
+            if (data.user && data.user.identities && data.user.identities.length === 0) {
+                return { success: false, status: 409, message: "Este e-mail já está cadastrado." };
+            }
+
             return {
                 success: true,
                 status: 201,
@@ -66,6 +71,16 @@ export class AuthService {
             };
         } catch (error) {
             console.error('[AuthService] signUp error', error);
+            const errorMessage = String(error);
+
+            if (errorMessage.includes("User already registered") || errorMessage.includes("já cadastrado")) {
+                return { success: false, status: 409, message: "Este e-mail já está cadastrado." };
+            }
+
+            if (errorMessage.includes("Error sending confirmation email") || errorMessage.includes("rate limit")) {
+                return { success: false, status: 429, message: "Limite de envio de e-mails atingido ou falha no servidor de e-mail. Tente novamente mais tarde." };
+            }
+
             return { success: false, status: 500, message: "Erro ao cadastrar usuário" };
         }
     }
