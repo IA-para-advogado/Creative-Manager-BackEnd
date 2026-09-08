@@ -1,0 +1,43 @@
+services:
+  # Development container — ts-node-dev com hot-reload
+  backend-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: creative-manager-backend-dev
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_KEY=${SUPABASE_KEY}
+      - FRONTEND_URL=${FRONTEND_URL}
+    env_file:
+      - .env
+    volumes:
+      # Monta o código-fonte local para hot-reload funcionar
+      - ./src:/app/src:ro
+    restart: unless-stopped
+
+  # Production container — Node.js com JS compilado
+  backend-prod:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: creative-manager-backend-prod
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_KEY=${SUPABASE_KEY}
+      - FRONTEND_URL=${FRONTEND_URL}
+    env_file:
+      - .env
+    restart: unless-stopped
+    profiles:
+      - prod
